@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Penggunaan Huruf Kapital</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Arial,Helvetica,sans-serif;
+  background:linear-gradient(135deg,#dff3ff,#eef8e8);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  color:#1f2937;
+}
+.container{width:min(920px,94vw)}
+.card{
+  background:white;border-radius:24px;padding:28px;
+  box-shadow:0 15px 45px rgba(0,0,0,.12);
+}
+.header{text-align:center;margin-bottom:20px}
+.header h1{margin:0 0 8px;color:#166534;font-size:clamp(24px,4vw,36px)}
+.header p{margin:0;color:#64748b}
+.progress-wrap{margin:20px 0}
+.progress-info{display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:8px}
+.progress{height:10px;background:#e5e7eb;border-radius:99px;overflow:hidden}
+.progress-bar{height:100%;width:0;background:#16a34a;transition:.3s}
+.question{font-size:clamp(19px,2.6vw,25px);font-weight:700;line-height:1.5;margin:24px 0}
+.options{display:grid;gap:12px}
+.option{
+  width:100%;padding:15px 18px;border:2px solid #dbe3ea;
+  background:#fff;border-radius:14px;text-align:left;font-size:16px;
+  cursor:pointer;transition:.2s;line-height:1.45;
+}
+.option:hover{border-color:#16a34a;background:#f0fdf4}
+.option.selected{border-color:#2563eb;background:#eff6ff}
+.option.correct{border-color:#16a34a;background:#dcfce7}
+.option.wrong{border-color:#dc2626;background:#fee2e2}
+.option:disabled{cursor:default}
+.feedback{min-height:28px;margin:16px 0;font-weight:700}
+.feedback.correct{color:#15803d}.feedback.wrong{color:#b91c1c}
+.controls{display:flex;justify-content:space-between;gap:12px;margin-top:20px}
+button{
+  border:0;border-radius:12px;padding:13px 22px;font-size:16px;
+  font-weight:700;cursor:pointer
+}
+#prevBtn{background:#e5e7eb;color:#374151}
+#nextBtn,#restartBtn{background:#16a34a;color:white}
+button:disabled{opacity:.45;cursor:not-allowed}
+.result{text-align:center;padding:30px 10px}
+.result .score{font-size:64px;font-weight:800;color:#16a34a;margin:15px}
+.badge{display:inline-block;padding:8px 14px;border-radius:999px;background:#dcfce7;color:#166534;font-weight:700}
+.review{text-align:left;margin-top:25px;max-height:360px;overflow:auto}
+.review-item{padding:12px;border-bottom:1px solid #e5e7eb}
+.small{font-size:13px;color:#64748b;margin-top:8px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div id="quizArea">
+      <div class="header">
+        <h1>Quiz Penggunaan Huruf Kapital</h1>
+        <p>Bahasa Indonesia • 15 Soal</p>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-info">
+          <span id="questionNumber">Soal 1 dari 15</span>
+          <span id="scoreLabel">Skor: 0</span>
+        </div>
+        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
+      <div id="question" class="question"></div>
+      <div id="options" class="options"></div>
+      <div id="feedback" class="feedback"></div>
+      <div class="controls">
+        <button id="prevBtn" onclick="prevQuestion()">← Sebelumnya</button>
+        <button id="nextBtn" onclick="nextQuestion()" disabled>Berikutnya →</button>
+      </div>
+    </div>
+
+    <div id="resultArea" class="result hidden">
+      <h1>🎉 Quiz Selesai!</h1>
+      <div class="score" id="finalScore">0/15</div>
+      <div class="badge" id="finalBadge"></div>
+      <p id="finalText"></p>
+      <button id="restartBtn" onclick="restartQuiz()">🔄 Ulangi Quiz</button>
+      <div class="review" id="review"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+{q:"Pilihlah penggunaan huruf kapital yang tepat…", o:[
+"Mereka berlibur ke Gunung Bromo, Jawa Timur.",
+"Kami mengirim surat kepada sekretaris jenderal Kementerian Luar Negeri.",
+"Hari raya IdulFitri tahun ini jatuh pada bulan Juli.",
+"Kami berlayar ke teluk Jakarta.",
+"Ia sedang membaca Buku Seni Menulis Puisi Modern."
+],a:0},
+{q:"Pilihlah kalimat yang menggunakan huruf kapital dengan tepat.",o:[
+"Dia tinggal di Jalan Hayam Wuruk, Kota Surabaya.",
+"Desa Sentul terletak di kabupaten Bogor, Jawa Barat.",
+"Makanan favoritku adalah soto banjar.",
+"Kami berencana mengunjungi gunung Semeru saat liburan.",
+"Ia berlayar ke selat Malaka."
+],a:0},
+{q:"Pilihlah kalimat yang seluruh penggunaan huruf kapitalnya sudah tepat!",o:[
+"Paman pulang dari Jawa Barat hari raya Idul Adha.",
+"Kami mengirim surat kepada Dokter Aminah, Spesialis Anak.",
+"Rektor Universitas Padjadjaran menghadiri acara di Bandung.",
+"Ibu wakil presiden republik Indonesia ikut menyambut tamu.",
+"\"pergi dari sini jika kau tidak punya undangan,\" seru sang ajudan."
+],a:2},
+{q:"Manakah penulisan nama geografi yang benar?",o:[
+"Penduduk di dataran tinggi Dieng hidup sebagai petani.",
+"Pemandangan teluk Benoa sangat memukau.",
+"Kami berlibur ke pulau Wakatobi yang indah.",
+"Kami berjalan-jalan ke Gang Mawar setiap malam hari.",
+"Ia berenang di danau yang berada dekat dengan Kampungnya."
+],a:3},
+{q:"Pilihlah kalimat yang menggunakan huruf kapital dengan benar!",o:[
+"Upacara hari Pendidikan Nasional diadakan di lapangan.",
+"Setiap bulan Januari, kami libur selama dua Minggu.",
+"Kami akan punya waktu libur setiap Pekan.",
+"Perang Dunia telah mengubah sejarah peradaban manusia.",
+"Aku suka hari raya Natal karena semua orang memakai baju merah."
+],a:0},
+{q:"Manakah penulisan judul yang paling tepat?",o:[
+"Buku yang berjudul “Hujan Di Bulan Juni” adalah karya Sapardi Djoko Damono.",
+"Saya membaca artikel tentang Penulisan Ejaan yang Disempurnakan.",
+"Bukunya berjudul Peranan Pemuda dalam Pembangunan Bangsa.",
+"Dia menyanyikan lagu “Bumi dan Bangsa” dengan merdu.",
+"Ia menonton Vilm “Romeo dan Juliet” di bioskop."
+],a:3},
+{q:"Pilihlah kalimat dengan penggunaan akronim atau singkatan yang benar!",o:[
+"PT. Maju Jaya berdiri pada tahun 2020.",
+"P.T Maju Jaya berdiri pada tahun 2020.",
+"Pt Maju Jaya berdiri pada tahun 2020",
+"Pt. Maju Jaya berdiri pada tahun 2020",
+"PT Maju Jaya berdiri pada tahun 2020"
+],a:4},
+{q:"Pilihlah kalimat yang penggunaan huruf kapitalnya sudah tepat!",o:[
+"Bu, ini tugas yang Kau berikan kemarin.",
+"\"Selamat pagi, jenderal,\" sapa prajurit itu.",
+"\"Terima kasih, Yang Mulia,\" ujar si Abdi.",
+"Aku harus menghormati Kakak dan Adikku.",
+"“Apakah anda akan berangkat ke Jakarta?” tanya Budi."
+],a:2},
+{q:"Manakah penulisan huruf kapital yang tepat?",o:[
+"Persatuan Guru Republik Indonesia (PGRI) akan membahas Hukum Archimedes.",
+"Komite Olimpiade Nasional Indonesia (KONI) sedang mempersiapkan atlet menuju Olimpiade.",
+"Sekumpulan ahli sedang membicarakan rumus Phytagoras.",
+"Masih banyak pelajar yang tidak suka mata pelajaran Visika.",
+"Albert Einstein adalah orang yang banyak berkontribusi dalam Fisika."
+],a:1},
+{q:"Pilihlah penulisan nama yang paling tepat!",o:[
+"Dewi Kusuma Hasanah, M.Si.",
+"Dewi Kusuma Hasanah, M.S.i.",
+"Dewi kusuma Hasanah, m.Si.",
+"Dewi kusuma Hasanah, m.s.i.",
+"Dewi Kusuma Hasanah M.Si."
+],a:0},
+{q:"Pilihlah penggunaan huruf kapital yang tepat pada unsur nama berikut…",o:[
+"“ibu, bolehkah aku pergi ke pasar?” kata Doni.",
+"Sekumpulan hewan itu dipimpin oleh jenderal Kancil.",
+"Ayam Jantan dari Timur adalah julukan untuk sultan Hasanuddin.",
+"Bangsa Indonesia memiliki beraneka ragam Agama.",
+"Anak itu berkata, “Semoga Tuhan memberikan jalan-Nya padamu.”"
+],a:4},
+{q:"Berdasarkan aturan, mengapa kata bin pada nama Abdul Rahman bin Zaini tidak dikapitalkan?",o:[
+"Karena \"bin\" adalah kata yang bermakna 'anak dari' dan tidak ditulis sebagai awal nama.",
+"Karena kata \"bin\" selalu ditulis dengan huruf kecil.",
+"Karena nama tersebut adalah nama Arab.",
+"Karena \"bin\" dianggap sebagai bagian dari nama belakang.",
+"Karena huruf kapital tidak digunakan untuk singkatan nama orang."
+],a:0},
+{q:"Mengapa Cirebon pada frasa batik Cirebon menggunakan huruf kapital?",o:[
+"Karena \"Cirebon\" adalah nama geografi yang menyatakan asal daerah.",
+"Karena semua nama kota harus dikapitalkan.",
+"Karena \"batik Cirebon\" adalah istilah yang sudah umum.",
+"Karena ini adalah pengecualian dari aturan umum.",
+"Tidak ada opsi yang tepat."
+],a:0},
+{q:"Mengapa kata Anda selalu diawali dengan huruf kapital?",o:[
+"Karena \"Anda\" adalah kata sapaan yang memiliki aturan khusus untuk selalu dikapitalkan.",
+"Karena “Anda” merupakan kata ganti orang kedua.",
+"Karena penulisan ini untuk menghormati lawan bicara.",
+"Karena \"Anda\" adalah singkatan dari nama.",
+"Karena semua kata yang bermakna sapaan harus dikapitalkan."
+],a:0},
+{q:"Pilihlah kalimat yang menggunakan huruf kapital dengan tepat.",o:[
+"Kami memperingati Proklamasi Kemerdekaan setiap tahun.",
+"Perlombaan senjata membawa risiko pecahnya Perang Dunia.",
+"Orang itu memiliki wajah keInggris-Inggrisan.",
+"Ibu membelikan Tono sebuah kunci Inggris",
+"Tidak ada yang tepat"
+],a:0}
+];
+
+let current=0, answers=Array(questions.length).fill(null);
+
+function render(){
+  const q=questions[current];
+  document.getElementById("questionNumber").textContent=`Soal ${current+1} dari ${questions.length}`;
+  document.getElementById("progressBar").style.width=`${((current+1)/questions.length)*100}%`;
+  document.getElementById("scoreLabel").textContent=`Skor: ${answers.filter((x,i)=>x===questions[i].a).length}`;
+  document.getElementById("question").textContent=`${current+1}. ${q.q}`;
+  const box=document.getElementById("options"); box.innerHTML="";
+  q.o.forEach((opt,i)=>{
+    const b=document.createElement("button");
+    b.className="option";
+    b.textContent=String.fromCharCode(65+i)+". "+opt;
+    b.onclick=()=>selectAnswer(i);
+    if(answers[current]!==null){
+      b.disabled=true;
+      if(i===q.a)b.classList.add("correct");
+      if(i===answers[current] && i!==q.a)b.classList.add("wrong");
+    }
+    box.appendChild(b);
+  });
+  const fb=document.getElementById("feedback");
+  if(answers[current]!==null){
+    fb.textContent=answers[current]===q.a?"✓ Jawaban benar!":"✗ Jawaban kurang tepat.";
+    fb.className="feedback "+(answers[current]===q.a?"correct":"wrong");
+  }else{fb.textContent="";fb.className="feedback";}
+  document.getElementById("prevBtn").disabled=current===0;
+  document.getElementById("nextBtn").disabled=answers[current]===null;
+  document.getElementById("nextBtn").textContent=current===questions.length-1?"Lihat Hasil":"Berikutnya →";
+}
+function selectAnswer(i){answers[current]=i;render();}
+function nextQuestion(){
+  if(current<questions.length-1){current++;render();}
+  else{showResult();}
+}
+function prevQuestion(){if(current>0){current--;render();}}
+function showResult(){
+  document.getElementById("quizArea").classList.add("hidden");
+  document.getElementById("resultArea").classList.remove("hidden");
+  const score=answers.reduce((n,a,i)=>n+(a===questions[i].a?1:0),0);
+  document.getElementById("finalScore").textContent=`${score}/${questions.length}`;
+  let badge=score>=13?"Sangat Baik!":score>=10?"Baik!":score>=8?"Cukup Baik":"Perlu Latihan Lagi";
+  document.getElementById("finalBadge").textContent=badge;
+  document.getElementById("finalText").textContent=`Kamu menjawab benar ${score} dari ${questions.length} soal.`;
+  const review=document.getElementById("review");review.innerHTML="<h3>Review Jawaban</h3>";
+  questions.forEach((q,i)=>{
+    const ok=answers[i]===q.a;
+    review.innerHTML+=`<div class="review-item"><b>${i+1}. ${ok?"✓ Benar":"✗ Salah"}</b><br>Jawaban benar: ${String.fromCharCode(65+q.a)}. ${q.o[q.a]}</div>`;
+  });
+}
+function restartQuiz(){
+  current=0;answers=Array(questions.length).fill(null);
+  document.getElementById("resultArea").classList.add("hidden");
+  document.getElementById("quizArea").classList.remove("hidden");
+  render();
+}
+render();
+</script>
+</body>
+</html>
